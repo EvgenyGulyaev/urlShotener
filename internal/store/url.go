@@ -50,7 +50,6 @@ func (ur *UrlRepository) ListAll() ([]model.Url, error) {
 
 	return result, err
 }
-
 func (ur *UrlRepository) Create(orig string) (model.Url, error) {
 	shortUrl, err := ur.Shorten(orig)
 	if err != nil {
@@ -64,21 +63,27 @@ func (ur *UrlRepository) Create(orig string) (model.Url, error) {
 		Clicks:    0,
 	}
 
-	if _, err := ur.FindLink(u.Original); err == nil {
-		return model.Url{}, fmt.Errorf("url %s already exists", u.Original)
+	if _, err := ur.FindByShort(shortUrl); err == nil {
+		return model.Url{}, fmt.Errorf("short URL %s already exists", shortUrl)
 	}
 
 	data, err := json.Marshal(u)
 	if err != nil {
-		return model.Url{}, fmt.Errorf("failed to marshal user: %w", err)
+		return model.Url{}, fmt.Errorf("failed to marshal url: %w", err)
 	}
 
 	err = ur.repo.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket(UrlBucket)
-		return b.Put([]byte(u.Original), data)
+
+		if err := b.Put([]byte(u.Original), data); err != nil {
+			return err
+		}
+
+		return b.Put([]byte(u.Short), []byte(u.Original))
 	})
+
 	if err != nil {
-		return model.Url{}, fmt.Errorf("failed to save user: %w", err)
+		return model.Url{}, fmt.Errorf("failed to save url: %w", err)
 	}
 
 	return u, nil
