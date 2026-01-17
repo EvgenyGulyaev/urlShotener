@@ -24,6 +24,11 @@ func GetUrl(ctx *silverlining.Context) {
 	}
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Recovered in IncrementClicks: %v", r)
+			}
+		}()
 		err = u.IncrementClicks(short)
 		if err != nil {
 			log.Print(err)
