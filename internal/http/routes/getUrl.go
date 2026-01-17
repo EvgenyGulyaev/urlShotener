@@ -23,11 +23,13 @@ func GetUrl(ctx *silverlining.Context) {
 		return
 	}
 
-	err = u.IncrementClicks(short)
-	if err != nil {
-		callback.GetError(ctx, &callback.Error{Message: err.Error(), Status: http.StatusInternalServerError})
-		return
-	}
+	go func() {
+		err = u.IncrementClicks(short)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}()
 
 	ctx.Redirect(http.StatusFound, url.Original)
 }
