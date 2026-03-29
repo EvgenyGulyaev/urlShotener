@@ -144,6 +144,15 @@ func (ur *UrlRepository) DeleteLink(url string) error {
 	})
 }
 
+func (ur *UrlRepository) DeleteByShort(short string) error {
+	u, err := ur.FindByShort(short)
+	if err != nil {
+		return err
+	}
+
+	return ur.DeleteLink(u.Original)
+}
+
 func (ur *UrlRepository) IncrementClicks(short string) error {
 	u, err := ur.FindByShort(short)
 	if err != nil {

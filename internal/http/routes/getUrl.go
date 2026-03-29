@@ -12,7 +12,7 @@ import (
 func GetUrl(ctx *silverlining.Context) {
 	short, err := ctx.GetQueryParamString("url")
 	if err != nil {
-		getUrls(ctx)
+		GetUrls(ctx)
 		return
 	}
 
@@ -39,11 +39,12 @@ func GetUrl(ctx *silverlining.Context) {
 	ctx.Redirect(http.StatusFound, url.Original)
 }
 
-func getUrls(ctx *silverlining.Context) {
+func GetUrls(ctx *silverlining.Context) {
 	u := store.GetUrlRepository()
 	urls, err := u.ListAll()
 	if err != nil {
 		callback.GetError(ctx, &callback.Error{Message: err.Error(), Status: http.StatusInternalServerError})
+		return
 	}
 	err = ctx.WriteJSON(http.StatusOK, urls)
 	if err != nil {
