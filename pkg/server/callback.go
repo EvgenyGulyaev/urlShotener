@@ -13,3 +13,8 @@ type Post struct {
 	Callback   func(ctx *silverlining.Context, body []byte)
 	Middleware []string
 }
+
+type Delete struct {
+	Callback   func(ctx *silverlining.Context)
+	Middleware []string
+}

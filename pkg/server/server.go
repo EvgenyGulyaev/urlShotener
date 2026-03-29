@@ -10,17 +10,19 @@ import (
 )
 
 type Server struct {
-	port       string
-	routesGet  map[string]Get
-	routesPost map[string]Post
+	port         string
+	routesGet    map[string]Get
+	routesPost   map[string]Post
+	routesDelete map[string]Delete
 }
 
-func GetServer(port string, routesGet map[string]Get, routesPost map[string]Post) *Server {
+func GetServer(port string, routesGet map[string]Get, routesPost map[string]Post, routesDelete map[string]Delete) *Server {
 	return singleton.GetInstance("server", func() interface{} {
 		return &Server{
-			port:       port,
-			routesGet:  routesGet,
-			routesPost: routesPost,
+			port:         port,
+			routesGet:    routesGet,
+			routesPost:   routesPost,
+			routesDelete: routesDelete,
 		}
 	}).(*Server)
 }
@@ -34,6 +36,8 @@ func (s *Server) StartHandle() (err error) {
 			s.handleGet(ctx, &path)
 		case silverlining.MethodPOST:
 			s.handlePost(ctx, &path)
+		case silverlining.MethodDELETE:
+			s.handleDelete(ctx, &path)
 		case silverlining.MethodOPTIONS:
 			ctx.WriteHeader(http.StatusNoContent)
 		}
@@ -61,6 +65,18 @@ func (s *Server) handlePost(ctx *silverlining.Context, path *string) {
 
 func (s *Server) handleGet(ctx *silverlining.Context, path *string) {
 	r, exists := s.routesGet[*path]
+	if !exists {
+		callback.NotFound(ctx)
+		return
+	}
+
+	middleware.Use(r.Middleware, func(c *silverlining.Context) {
+		r.Callback(c)
+	})(ctx)
+}
+
+func (s *Server) handleDelete(ctx *silverlining.Context, path *string) {
+	r, exists := s.routesDelete[*path]
 	if !exists {
 		callback.NotFound(ctx)
 		return
